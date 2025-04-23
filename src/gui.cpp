@@ -10,8 +10,9 @@ int runGui(const std::string& byteFilename, const std::string& decimalFilename) 
     if (!InitPlatformBackend(hwnd))
         return 1;
 
-    int selectedRange[2] = {0, 30000};
-    std::vector<std::array<int, 2>> selectedRanges;
+    std::vector<int> mainHistogram = readIntegerTextFile(decimalFilename);
+    std::vector<ImPlotRect> dragRects;
+    std::vector<ImVec4> dragRectsColors;
 
     bool done = false;
 
@@ -41,17 +42,44 @@ int runGui(const std::string& byteFilename, const std::string& decimalFilename) 
 
         ImGui::Text("Range");
         if (ImGui::Button("Add Selection")) {
-            selectedRanges.push_back(std::array<int, 2>{0, 30000});
+            dragRects.push_back(ImPlotRect(0, 30000, 0, 100));
+            dragRectsColors.push_back(ImVec4(1.0f, 0.0f, 0.0f, 0.25f)); // Red with 25% opacity
         }
         
-        for (std::array<int, 2>& pair : selectedRanges) {
-            ImGui::InputInt2("Range", pair.data());
+        for (size_t i = 0; i < dragRects.size(); i++) {
+            ImGui::PushID(static_cast<int>(i)); // Push unique ID for widgets
+            
+            // Create int variables to hold the values
+            int xMin = static_cast<int>(dragRects[i].X.Min);
+            int xMax = static_cast<int>(dragRects[i].X.Max);
+            int intInputs[2] = {xMin, xMax};
+            
+            // Ensure we have a color for this rectangle
+            if (i >= dragRectsColors.size()) {
+                dragRectsColors.push_back(ImVec4(1.0f, 0.0f, 0.0f, 0.25f));
+            }
+            
+            // Use InputInt2 with pointers to these values
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.6f);
+            if (ImGui::InputInt2("##Range", intInputs)) {
+                // If values changed, update the rect
+                dragRects[i].X.Min = static_cast<double>(intInputs[0]);
+                dragRects[i].X.Max = static_cast<double>(intInputs[1]);
+            }
+            
+            // Add color picker on the same line
+            ImGui::SameLine();
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.9f);
+            ImGui::ColorEdit4("##Color", (float*)&dragRectsColors[i], 
+                              ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar);
+            
+            ImGui::PopID();
         }
 
         ImGui::NextColumn();
 
-        renderHistogram(decimalFilename, selectedRange);
-
+        //drawHistogram(mainHistogram, selectedRange);
+        drawMainHistogram("Main Histogram", mainHistogram, dragRects, dragRectsColors);
         ImGui::End();
 
         PresentFrame();

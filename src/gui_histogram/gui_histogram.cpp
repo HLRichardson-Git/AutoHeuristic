@@ -14,7 +14,7 @@ std::vector<int> readIntegerTextFile(const std::string& filename) {
     return data;
 }
 
-void drawDecimalHistogram(const std::vector<int>& histogram, int selectedRange[2]) {
+/*void drawHistogram(const std::vector<int>& histogram, int selectedRange[2]) {
     static ImPlotHistogramFlags histFlags = ImPlotHistogramFlags_None;
     static int bins = 1000;
     static double x1 = selectedRange[0], x2 = selectedRange[1], y1 = 0.0, y2 = 0.0;
@@ -54,16 +54,42 @@ void drawDecimalHistogram(const std::vector<int>& histogram, int selectedRange[2
         ImPlot::PlotHistogram("Filtered", histogram.data(), histogram.size(), bins, 1.0, ImPlotRange(selectedRange[0], selectedRange[1]), histFlags);
         ImPlot::EndPlot();
     }
+}*/
+
+void drawMainHistogram(const std::string& title, const std::vector<int>& histogram, std::vector<ImPlotRect>& rects, const std::vector<ImVec4>& rectColors) {
+    static ImPlotHistogramFlags histFlags = ImPlotHistogramFlags_None;
+    ImPlotRange range(0, 30000);
+    static int bins = 1000;
+
+    if (ImPlot::BeginPlot(title.c_str())) {
+        ImPlot::SetupAxes("Value", "Frequency", ImPlotAxisFlags_AutoFit, ImPlotAxisFlags_AutoFit);
+        ImPlot::PlotHistogram("Data", histogram.data(), histogram.size(), bins, 1.0, range, histFlags);
+
+        // Draw rectangles if provided
+        for (size_t i = 0; i < rects.size(); i++) {
+            // Make sure the DragRect is as tall as the Histogram
+            ImPlotRect plotLimits = ImPlot::GetPlotLimits();
+            rects[i].Y.Min = plotLimits.Y.Min;
+            rects[i].Y.Max = plotLimits.Y.Max;
+
+            ImPlot::DragRect(i, 
+                            &rects[i].X.Min, &rects[i].Y.Min,
+                            &rects[i].X.Max, &rects[i].Y.Max,
+                            rectColors[i], 
+                            ImPlotDragToolFlags_None);
+        }
+
+        ImPlot::EndPlot();
+    }
 }
 
-void renderHistogram(const std::string& filename, int selectedRange[2]) {
-    static std::vector<int> histogram;
-    static bool histogramLoaded = false;
+void drawHistogram(const std::string& title, const std::vector<int>& histogram, ImPlotRange range) {
+    static ImPlotHistogramFlags histFlags = ImPlotHistogramFlags_None;
+    static int bins = 1000;
 
-    if (!histogramLoaded) {
-        histogram = readIntegerTextFile(filename);
-        histogramLoaded = true;
+    if (ImPlot::BeginPlot(title.c_str())) {
+        ImPlot::SetupAxes("Value", "Frequency", ImPlotAxisFlags_AutoFit, ImPlotAxisFlags_AutoFit);
+        ImPlot::PlotHistogram("Data", histogram.data(), histogram.size(), bins, 1.0, range, histFlags);
+        ImPlot::EndPlot();
     }
-
-    drawDecimalHistogram(histogram, selectedRange);
 }
