@@ -80,6 +80,25 @@ int runGui(const std::string& byteFilename, const std::string& decimalFilename) 
 
         //drawHistogram(mainHistogram, selectedRange);
         drawMainHistogram("Main Histogram", mainHistogram, dragRects, dragRectsColors);
+
+        // Reset columns to prepare for sub-histograms
+        ImGui::Columns(1);
+
+        if (!dragRects.empty()) {
+            ImGui::Separator();
+            
+            for (size_t i = 0; i < dragRects.size(); i++) {
+                // Create title for the sub-histogram
+                std::string subTitle = "Selection " + std::to_string(i + 1) + " [" + 
+                                      std::to_string(static_cast<int>(dragRects[i].X.Min)) + 
+                                      " - " + 
+                                      std::to_string(static_cast<int>(dragRects[i].X.Max)) + "]";
+                
+                // Draw the sub-histogram directly using the range
+                drawSubHistogram(subTitle, mainHistogram, dragRects[i], dragRectsColors[i]);
+            }
+        }
+
         ImGui::End();
 
         PresentFrame();
