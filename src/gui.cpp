@@ -99,14 +99,26 @@ int runGui(const std::string& byteFilename, const std::string& decimalFilename) 
             
                 if (ImGui::Button("Test Section")) {
                     std::string outputFile = "../../data/u32_output_range_" + std::to_string(dragRectMin) +
-                                             "_" + std::to_string(dragRectMax) + ".bin";
+                                             "_" + std::to_string(dragRectMax);
+                    std::string outputFileBinary = outputFile + ".bin";
             
                     std::string cmd = "wsl u32-selectrange /mnt/c/Projects/AutoHeuristic/data/u32_output.bin " +
                                       std::to_string(dragRectMin) + " " + std::to_string(dragRectMax) +
-                                      " > " + outputFile;
+                                      " > " + outputFileBinary;
             
                     std::string output = execCommand(cmd);
                     std::cout << "u32-selectrange Output:\n" << output << std::endl;
+
+                    // Masking step
+                    std::string hexMaskStr = "000000FF";
+                    std::string maskedOutputFile = outputFile + "_masked.bin";
+                    convertAndMaskLittleEndianBinaryToBigEndian(outputFileBinary, maskedOutputFile, hexMaskStr);
+
+                    std::cout << "Masked big-endian output written to: " << maskedOutputFile << "\n";
+
+                    cmd = "wsl ea_non_iid -v " + maskedOutputFile;
+                    output = execCommand(cmd);
+                    std::cout << "ea_non_iid Results:\n" << output << std::endl;
                 }
             
                 ImGui::NextColumn();
@@ -119,7 +131,7 @@ int runGui(const std::string& byteFilename, const std::string& decimalFilename) 
                 
                 ImGui::Separator();
                 ImGui::NextColumn();
-                
+
                 ImGui::PopID(); // Match PushID
             }
 
