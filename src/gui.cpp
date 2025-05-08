@@ -15,6 +15,18 @@ int runGui(const std::string& byteFilename, const std::string& decimalFilename) 
     std::vector<int> mainHistogram = readIntegerTextFile(decimalFilename);
     std::vector<ImPlotRect> dragRects;
     std::vector<ImVec4> dragRectsColors;
+    
+    // Initialize precomputed histogram with default values
+    PrecomputedHistogram precomputedMain;
+    precomputedMain.binCount = 1000;
+    precomputedMain.minValue = 0;
+    precomputedMain.maxValue = 30000;
+    
+    // Compute histogram bins once at startup
+    precomputedMain = computeHistogramBins(mainHistogram, 
+                                         precomputedMain.binCount, 
+                                         precomputedMain.minValue, 
+                                         precomputedMain.maxValue);
 
     bool done = false;
 
@@ -48,6 +60,9 @@ int runGui(const std::string& byteFilename, const std::string& decimalFilename) 
             dragRectsColors.push_back(ImVec4(1.0f, 0.0f, 0.0f, 0.25f)); // Red with 25% opacity
         }
         
+        // Bin count slider
+        ImGui::SliderInt("Bins", &precomputedMain.binCount, 100, 2000);
+        
         for (size_t i = 0; i < dragRects.size(); i++) {
             ImGui::PushID(static_cast<int>(i)); // Push unique ID for widgets
             
@@ -80,8 +95,8 @@ int runGui(const std::string& byteFilename, const std::string& decimalFilename) 
 
         ImGui::NextColumn();
 
-        //drawHistogram(mainHistogram, selectedRange);
-        drawMainHistogram("Main Histogram", mainHistogram, dragRects, dragRectsColors);
+        // Use the optimized histogram drawing function with precomputed data
+        drawMainHistogram("Main Histogram", mainHistogram, dragRects, dragRectsColors, precomputedMain);
 
         // Reset columns to prepare for sub-histograms
         ImGui::Columns(1);
@@ -134,11 +149,19 @@ int runGui(const std::string& byteFilename, const std::string& decimalFilename) 
 
                 ImGui::PopID(); // Match PushID
             }
-
-            //ImGui::Columns(1); // Reset to single-column layout
         }
 
         ImGui::End();
+
+        // Display FPS in the title bar
+        ImGui::SetNextWindowPos(ImVec2(10, 10));
+        ImGui::SetNextWindowBgAlpha(0.35f);
+        if (ImGui::Begin("FPS", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | 
+                                       ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | 
+                                       ImGuiWindowFlags_NoSavedSettings)) {
+            ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
+            ImGui::End();
+        }
 
         PresentFrame();
     }

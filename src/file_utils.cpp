@@ -12,7 +12,7 @@ void writeBigEndian32(uint32_t value, std::ostream& out) {
     out.put(value & 0xFF);
 }
 
-void convertDecimalFileToBinaryBigEndian(const std::string& inputPath, const std::string& binaryOutputPath) {
+void convertDecimalFileToBinaryBigEndian(const std::string& inputPath, const std::string& binaryOutputPath, unsigned int& count) {
     std::ifstream input(inputPath);
     std::ofstream output(binaryOutputPath, std::ios::binary);
 
@@ -30,6 +30,7 @@ void convertDecimalFileToBinaryBigEndian(const std::string& inputPath, const std
             output.put(static_cast<char>((value >> 8) & 0xFF));
             output.put(static_cast<char>((value >> 16) & 0xFF));
             output.put(static_cast<char>((value >> 24) & 0xFF));
+            ++count;
         } catch (...) {
             std::cerr << "Error parsing line: " << line << "\n";
         }

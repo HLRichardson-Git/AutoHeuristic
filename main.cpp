@@ -15,16 +15,18 @@ int main() {
     std::string binFile = "../../data/u32_output.bin";
     std::string outputFile = "../../data/masked_output.bin";
 
-    convertDecimalFileToBinaryBigEndian(inputFile, binFile);
-    std::string cmd1 = "wsl awk '{print $2;}' < /mnt/c/Projects/AutoHeuristic/data/entropy_output.data | dec-to-u32 > large-u32.bin";
-    std::string testOutput = execCommand(cmd1);
-    extractMaskedBytesFromDecimals(inputFile, outputFile, maskHex);
+    unsigned int totalSamples = 0, decimationUpperBound = 0;
+    //convertDecimalFileToBinaryBigEndian(inputFile, binFile, totalSamples);
+    decimationUpperBound = totalSamples / 1000000;
+    std::cout << "Total Amount of Samples: " << totalSamples << std::endl;
+    std::cout << "Decimation Upper Bound: " << decimationUpperBound << std::endl;
+
     //extractMaskedBytesFromDecimals(inputFile, outputFile, maskHex);
 
-    std::string cmd = "wsl perl /home/user/find-first-passing-decimation.pl /mnt/c/Projects/JENT_Heuristic/data/masked_output.bin 5";
+    //std::string cmd = "wsl perl /home/user/find-first-passing-decimation.pl /mnt/c/Projects/JENT_Heuristic/data/masked_output.bin 5";
+    //std::cout << "Finding first passing decimation script..." << std::endl;
     //std::string output = execCommand(cmd);
-
-    //std::cout << "Script Output:\n" << output << std::endl;
+    //std::cout << "Perl Script Output:\n" << output << std::endl;
 
     runGui(outputFile, inputFile);
 
