@@ -5,6 +5,7 @@
 #include <string>
 #include <algorithm>
 #include <numeric>
+#include <functional>
 
 struct PrecomputedHistogram {
     std::vector<double> binCounts;
@@ -16,6 +17,11 @@ struct PrecomputedHistogram {
 
 // Pre-compute histogram data once
 PrecomputedHistogram computeHistogramBins(const std::vector<int>& data, int binCount, double minRange, double maxRange);
+
+// Advanced version that can use multithreading for large datasets
+PrecomputedHistogram computeHistogramBinsThreaded(const std::vector<int>& data, int binCount, 
+                                                double minRange, double maxRange, 
+                                                std::function<void(float)> progressCallback = nullptr);
 
 // Efficiently draw a histogram using pre-computed bin data
 void drawPrecomputedHistogram(const std::string& label, const PrecomputedHistogram& hist);

@@ -22,6 +22,22 @@ int runGui(const std::string& byteFilename, const std::string& decimalFilename) 
     precomputedMain.minValue = 0;
     precomputedMain.maxValue = 30000;
     
+    // Initialize range slider values
+    float rangeValues[2] = {static_cast<float>(precomputedMain.minValue), 
+                           static_cast<float>(precomputedMain.maxValue)};
+    
+    // Show loading screen during initial computation
+    StartImGuiFrame();
+    ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f), 
+                          ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+    ImGui::Begin("Loading", nullptr, 
+               ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | 
+               ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar);
+    ImGui::Text("Computing histogram for %zu data points...", mainHistogram.size());
+    ImGui::ProgressBar(0.0f, ImVec2(300, 0));
+    ImGui::End();
+    PresentFrame();
+    
     // Compute histogram bins once at startup
     precomputedMain = computeHistogramBins(mainHistogram, 
                                          precomputedMain.binCount, 
@@ -62,6 +78,17 @@ int runGui(const std::string& byteFilename, const std::string& decimalFilename) 
         
         // Bin count slider
         ImGui::SliderInt("Bins", &precomputedMain.binCount, 100, 2000);
+        
+        // Range sliders for min/max values
+        static float rangeValues[2] = {static_cast<float>(precomputedMain.minValue), 
+                                       static_cast<float>(precomputedMain.maxValue)};
+        if (ImGui::DragFloatRange2("Range", &rangeValues[0], &rangeValues[1], 
+                                  100.0f, 0.0f, 500000.0f, "Min: %.0f", "Max: %.0f")) {
+            // Update the histogram range when sliders change
+            precomputedMain.minValue = rangeValues[0];
+            precomputedMain.maxValue = rangeValues[1];
+            // The drawMainHistogram function will notice the range has changed and recompute bins
+        }
         
         for (size_t i = 0; i < dragRects.size(); i++) {
             ImGui::PushID(static_cast<int>(i)); // Push unique ID for widgets
